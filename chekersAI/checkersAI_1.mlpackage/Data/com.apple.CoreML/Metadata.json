@@ -1,0 +1,13 @@
+{
+  "MLModelCreatorDefinedKey" : {
+    "com.apple.coreml.model.preview.type" : "objectDetector",
+    "com.apple.createml.training.started" : "2025-06-11T10:36:55Z",
+    "com.apple.createml.version" : "15.5.0",
+    "com.apple.createml.training.finished" : "2025-06-11T10:37:35Z",
+    "com.apple.createml.app.tag" : "151.2",
+    "iterations" : "150",
+    "com.apple.createml.model.created" : "2025-06-11T10:37:35Z",
+    "com.apple.createml.app.version" : "6.2"
+  },
+  "MLModelAuthorKey" : "Володимир"
+}

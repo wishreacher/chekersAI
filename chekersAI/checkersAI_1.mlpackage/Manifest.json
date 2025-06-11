@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "4AB4E97A-FDD9-40B0-8D39-8F4D999C3BC6": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "checkersAI_1.mlmodel",
+            "path": "com.apple.CoreML/checkersAI_1.mlmodel"
+        },
+        "C8597C2B-DC4E-44AF-AC45-7BFE25637EE1": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        },
+        "EA13EC85-7E0D-4BB4-BE94-FA69A27868A6": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        }
+    },
+    "rootModelIdentifier": "4AB4E97A-FDD9-40B0-8D39-8F4D999C3BC6"
+}
