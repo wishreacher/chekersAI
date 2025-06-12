@@ -11,7 +11,7 @@ import SwiftUI
 struct chekersAIApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ImageAnalysisView()
         }
     }
 }
