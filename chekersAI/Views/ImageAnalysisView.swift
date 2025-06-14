@@ -22,15 +22,18 @@ struct ImageAnalysisView: View {
                         GeometryReader { proxy in
                             Color.clear
                                 .onChange(of: proxy.size) {
-                                    updateImageFrames(containerSize: proxy.size, image: image)
+                                    vm.updateImageFrames(containerSize: proxy.size, image: image)
                                 }
                                 .onAppear {
-                                    updateImageFrames(containerSize: proxy.size, image: image)
+                                    vm.updateImageFrames(containerSize: proxy.size, image: image)
                                 }
                         }
                     )
                     .overlay(
-                        vm.drawDetections(detections: vm.detections, imageFrame: vm.actualImageFrame)
+                        ZStack {
+                            vm.drawDetections(detections: vm.pieceDetections, imageFrame: vm.actualImageFrame)
+                            vm.drawDetections(detections: vm.boardDetections, imageFrame: vm.actualImageFrame)
+                        }
                     )
             }
             
@@ -47,45 +50,7 @@ struct ImageAnalysisView: View {
                     }
                 }
             }
-            
-            if let result = vm.analysisResult {
-                Text("Analysis: \(result)")
-                    .padding()
-            }
         }
-    }
-    
-    private func updateImageFrames(containerSize: CGSize, image: UIImage) {
-        vm.containerFrame = CGRect(origin: .zero, size: containerSize)
-        
-        let imageSize = image.size
-        let containerAspectRatio = containerSize.width / containerSize.height
-        let imageAspectRatio = imageSize.width / imageSize.height
-        
-        var actualImageSize: CGSize
-        var imageOffset: CGPoint
-        
-        if imageAspectRatio > containerAspectRatio {
-            actualImageSize = CGSize(
-                width: containerSize.width,
-                height: containerSize.width / imageAspectRatio
-            )
-            imageOffset = CGPoint(
-                x: 0,
-                y: (containerSize.height - actualImageSize.height) / 2
-            )
-        } else {
-            actualImageSize = CGSize(
-                width: containerSize.height * imageAspectRatio,
-                height: containerSize.height
-            )
-            imageOffset = CGPoint(
-                x: (containerSize.width - actualImageSize.width) / 2,
-                y: 0
-            )
-        }
-        
-        vm.actualImageFrame = CGRect(origin: imageOffset, size: actualImageSize)
     }
 }
 

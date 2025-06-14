@@ -14,23 +14,24 @@ import Vision
 class ImageAnalysisViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var selectedPhotoItem: PhotosPickerItem?
-    @Published var analysisResult: String?
-    @Published var detections: [Detection] = []
-    @Published var containerFrame: CGRect = .zero
-    @Published var actualImageFrame: CGRect = .zero
-    @Published var boundingBoxes: [CGRect] = []
+    @Published var actualImageFrame: CGRect
+    @Published var containerFrame: CGRect
     
-    // Temporary storage for detections from each model
-    private var objectDetections: [Detection] = []
-    private var boardDetections: [Detection] = []
+    private var boardDetector: BoardDetector?
+    private var pieceDetector: PieceDetector?
+    
+    var pieceDetections: [Detection] = []
+    var boardDetections: [Detection] = []
+    
+    init (actualImageFrame: CGRect = .zero, containerFrame: CGRect = .zero) {
+        self.actualImageFrame = actualImageFrame
+        self.containerFrame = containerFrame
+    }
     
     @ViewBuilder
-    func drawDetections(detections: [Detection], imageFrame: CGRect) -> some View {
+    func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
         ForEach(detections) { detection in
             let rect = convertRect(from: detection.boundingBox, in: imageFrame)
-            
-            // Use different colors for board vs. other objects (optional)
-            let color = detection.label == "board" ? Color.green : Color.red
             
             Rectangle()
                 .stroke(color, lineWidth: 2)
@@ -46,73 +47,43 @@ class ImageAnalysisViewModel: ObservableObject {
     }
     
     func analyzeImage(_ image: UIImage) {
-        guard let cgImage = image.cgImage else { return }
+        boardDetector = BoardDetector(image: image)
+        pieceDetector = PieceDetector(image: image)
         
-        let mlConfig = MLModelConfiguration()
-        #if targetEnvironment(simulator)
-            mlConfig.computeUnits = .cpuOnly
-        #endif
-        
-        // Clear previous detections
-        detections = []
-        objectDetections = []
-        boardDetections = []
-        
-        do {
-            // Load both models
-            let objectModel = try VNCoreMLModel(for: checkersAI_1(configuration: mlConfig).model)
-            let boardModel = try VNCoreMLModel(for: BoardDetector_2_Iteration_530(configuration: mlConfig).model)
-            
-            // Create Vision requests for both models
-            let objectRequest = VNCoreMLRequest(model: objectModel) { request, error in
-                self.processDetections(from: request, error: error, type: "object")
-            }
-            
-            let boardRequest = VNCoreMLRequest(model: boardModel) { request, error in
-                self.processDetections(from: request, error: error, type: "board")
-            }
-            
-            // Perform both requests on the same image
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try handler.perform([objectRequest, boardRequest])
-        } catch {
-            DispatchQueue.main.async {
-                self.analysisResult = "Failed to analyze: \(error.localizedDescription)"
-            }
-            print("Error: \(error)")
-        }
+        boardDetections = boardDetector?.detect() ?? []
+        pieceDetections = pieceDetector?.detect() ?? []
     }
     
-    private func processDetections(from request: VNRequest, error: Error?, type: String) {
-        guard let results = request.results as? [VNRecognizedObjectObservation] else {
-            DispatchQueue.main.async {
-                self.analysisResult = "No valid detection results for \(type)."
-            }
-            print("No valid results for \(type).")
-            return
-        }
+    func updateImageFrames(containerSize: CGSize, image: UIImage) {
+        containerFrame = CGRect(origin: .zero, size: containerSize)
         
-        let newDetections: [Detection] = results.compactMap { result in
-            guard let topLabel = result.labels.first else { return nil }
-            return Detection(
-                label: topLabel.identifier,
-                confidence: topLabel.confidence,
-                boundingBox: result.boundingBox
+        let imageSize = image.size
+        let containerAspectRatio = containerSize.width / containerSize.height
+        let imageAspectRatio = imageSize.width / imageSize.height
+        
+        var actualImageSize: CGSize
+        var imageOffset: CGPoint
+        
+        if imageAspectRatio > containerAspectRatio {
+            actualImageSize = CGSize(
+                width: containerSize.width,
+                height: containerSize.width / imageAspectRatio
+            )
+            imageOffset = CGPoint(
+                x: 0,
+                y: (containerSize.height - actualImageSize.height) / 2
+            )
+        } else {
+            actualImageSize = CGSize(
+                width: containerSize.height * imageAspectRatio,
+                height: containerSize.height
+            )
+            imageOffset = CGPoint(
+                x: (containerSize.width - actualImageSize.width) / 2,
+                y: 0
             )
         }
         
-        DispatchQueue.main.async {
-            if type == "object" {
-                self.objectDetections = newDetections
-            } else if type == "board" {
-                self.boardDetections = newDetections
-            }
-            self.updateDetections()
-        }
-    }
-    
-    private func updateDetections() {
-        detections = objectDetections + boardDetections
-        analysisResult = "\(detections.count) detected"
+        actualImageFrame = CGRect(origin: imageOffset, size: actualImageSize)
     }
 }
