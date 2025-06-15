@@ -22,6 +22,13 @@ class Detector {
     init(image: UIImage) {
         self.image = image
     }
+    
+    func reset() {
+        detections = []
+        containerFrame = .zero
+        actualImageFrame = .zero
+        boundingBoxes = []
+    }
 }
 
 protocol DetectionProtocol {
