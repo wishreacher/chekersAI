@@ -12,31 +12,18 @@ struct ImageAnalysisView: View {
     @StateObject private var vm: ImageAnalysisViewModel = ImageAnalysisViewModel()
     
     var body: some View {
+        TabView {
+            makeImageSelectionView()
+                .tabItem { Image(systemName: "photo")}
+            
+            makeCameraSelectionView()
+                .tabItem { Image(systemName: "camera") }
+        }
+    }
+    
+    @ViewBuilder
+    func makeImageSelectionView() -> some View {
         VStack(spacing: 20) {
-//            if let image = vm.selectedImage {
-//                Image(uiImage: image)
-//                    .resizable()
-//                    .scaledToFit()
-//                    .frame(maxWidth: .infinity, maxHeight: 300)
-//                    .background(
-//                        GeometryReader { proxy in
-//                            Color.clear
-//                                .onChange(of: proxy.size) {
-//                                    vm.updateImageFrames(containerSize: proxy.size, image: image)
-//                                }
-//                                .onAppear {
-//                                    vm.updateImageFrames(containerSize: proxy.size, image: image)
-//                                }
-//                        }
-//                    )
-//                
-//                    .overlay(
-//                        ZStack {
-//                            vm.drawDetections(detections: vm.pieceDetections, imageFrame: vm.actualImageFrame)
-//                            vm.drawDetections(detections: vm.boardDetections, imageFrame: vm.actualImageFrame)
-//                        }
-//                    )
-//            }
             if let image = vm.selectedImage {
                 GeometryReader { geometry in
                     Image(uiImage: vm.selectedImage!)
@@ -57,7 +44,7 @@ struct ImageAnalysisView: View {
                         }
                 }
             }
-                        
+            
             PhotosPicker(selection: $vm.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                 Text("Select Photo")
                     .foregroundColor(.blue)
@@ -71,6 +58,16 @@ struct ImageAnalysisView: View {
                     }
                 }
             }
+        }
+    }
+    
+    @ViewBuilder
+    func makeCameraSelectionView() -> some View {
+        if let frame = vm.frame {
+            Image(frame, scale: 1, orientation: .up, label: Text(""))
+        }
+        else {
+            Color(.red)
         }
     }
 }

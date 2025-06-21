@@ -11,11 +11,18 @@ import PhotosUI
 import CoreML
 import Vision
 
-class ImageAnalysisViewModel: ObservableObject {
+class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var actualImageFrame: CGRect
     @Published var containerFrame: CGRect
+    @Published var cameraPermissionGranted = false
+    
+    @Published var frame: CGImage?
+    
+    private let captureSession = AVCaptureSession()
+    private let captureQueue = DispatchQueue(label: "camera")
+    private let context = CIContext()
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
@@ -26,6 +33,15 @@ class ImageAnalysisViewModel: ObservableObject {
     init (actualImageFrame: CGRect = .zero, containerFrame: CGRect = .zero) {
         self.actualImageFrame = actualImageFrame
         self.containerFrame = containerFrame
+        
+        super.init()
+        
+        checkPermission()
+        captureQueue.async { [unowned self] in
+            self.setupCameraSession()
+            self.captureSession.startRunning()
+            
+        }
     }
     
     @ViewBuilder
@@ -43,6 +59,21 @@ class ImageAnalysisViewModel: ObservableObject {
                 .foregroundColor(.white)
                 .background(Color.black.opacity(0.7))
                 .position(x: rect.midX, y: rect.minY - 10)
+        }
+    }
+    
+    func checkPermission() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+            case .authorized:
+            cameraPermissionGranted = true
+        case .denied, .restricted:
+            cameraPermissionGranted = false
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    self.cameraPermissionGranted = granted
+                }
+            }
         }
     }
     
@@ -85,5 +116,36 @@ class ImageAnalysisViewModel: ObservableObject {
         }
         
         actualImageFrame = CGRect(origin: imageOffset, size: actualImageSize)
+    }
+    
+    private func setupCameraSession() {
+        let videoOutput = AVCaptureVideoDataOutput()
+        
+        guard cameraPermissionGranted else { return }
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else { return }
+        guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return }
+        guard captureSession.canAddInput(videoDeviceInput) else { return }
+        captureSession.addInput(videoDeviceInput)
+        
+        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "sampleBufferDelegateQueue"))
+        captureSession.addOutput(videoOutput)
+        videoOutput.connection(with: .video)?.videoOrientation = .portrait
+    }
+}
+
+extension ImageAnalysisViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        guard let cgImage = imageFromSampleBuffer(sampleBuffer: sampleBuffer) else { return }
+        
+        DispatchQueue.main.async { [unowned self] in
+            self.frame = cgImage
+        }
+    }
+    
+    private func imageFromSampleBuffer(sampleBuffer: CMSampleBuffer) -> CGImage? {
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
+        let ciImage = CIImage(cvImageBuffer: imageBuffer)
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return nil }
+        return cgImage
     }
 }
