@@ -16,6 +16,7 @@ class ImageAnalysisViewModel: ObservableObject {
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var actualImageFrame: CGRect
     @Published var containerFrame: CGRect
+    @Published var currentPlayer: Player = .black
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
@@ -52,6 +53,22 @@ class ImageAnalysisViewModel: ObservableObject {
         
         boardDetections = boardDetector?.detect() ?? []
         pieceDetections = pieceDetector?.detect() ?? []
+        
+        guard let board = pieceDetector?.convertDetections(from: boardDetections, pieces: pieceDetections, player: currentPlayer) else{return}
+        
+        let game = Game(for: board, currentPlayer: self.currentPlayer)
+        board.debugPrint()
+        
+
+        let (score, move) = game.bestMove(depth: 3)
+        
+        if let bestMove = move {
+            print("Найкращий хід: \(bestMove.from) → \(bestMove.to), score: \(score)")
+        }
+        
+        if let winner = game.checkWinner() {
+            print("Гра завершена. Переможець: \(winner)")
+        }
     }
     
     func updateImageFrames(containerSize: CGSize, image: UIImage) {
