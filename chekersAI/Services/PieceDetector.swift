@@ -46,13 +46,18 @@ class PieceDetector: Detector, DetectionProtocol {
         return detections
     }
     
-    func convertDetections(from boardDet: [Detection], pieces: [Detection], player: Player) -> Board{
-        var board = Board.emptyBoard()
-        
+    func getBoard(from boardDet: [Detection], pieces: [Detection], player: Player) -> Board {
         guard let boardBox = boardDet.first?.boundingBox else {
             print("Board not detected!")
-            return board
+            return Board.emptyBoard()
         }
+        
+        if pieces.isEmpty {
+            print("No pieces detected!")
+            return Board.emptyBoard()
+        }
+        
+        var board = Board.emptyBoard()
 
         for piece in pieces {
             let box = piece.boundingBox
@@ -65,6 +70,11 @@ class PieceDetector: Detector, DetectionProtocol {
             
             let col = Int(relativeX * 8)
             let row = 7 - Int(relativeY * 8)
+            
+            guard row >= 0, row < 8, col >= 0, col < 8 else {
+                print("Skipping out-of-bounds index at row: \(row), col: \(col)")
+                continue
+            }
             
             guard (row + col) % 2 == 1 else {
                 print("Skipping invalid square (light tile) at row: \(row), col: \(col)")

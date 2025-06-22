@@ -17,38 +17,24 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var actualImageFrame: CGRect
     @Published var containerFrame: CGRect
     @Published var currentPlayer: Player = .black
-    @Published var cameraPermissionGranted = false
-    
-    @Published var frame: CGImage?
-    
-    private let captureSession = AVCaptureSession()
-    private let captureQueue = DispatchQueue(label: "camera")
-    private let context = CIContext()
+    @Published var boardDetections: [Detection] = []
+    @Published var pieceDetections: [Detection] = []
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
     
-    var pieceDetections: [Detection] = []
-    var boardDetections: [Detection] = []
-    
-    init (actualImageFrame: CGRect = .zero, containerFrame: CGRect = .zero) {
+    init(actualImageFrame: CGRect = .zero, containerFrame: CGRect = .zero) {
         self.actualImageFrame = actualImageFrame
         self.containerFrame = containerFrame
-        
         super.init()
-        
-        checkPermission()
-        captureQueue.async { [unowned self] in
-            self.setupCameraSession()
-            self.captureSession.startRunning()
-            
-        }
     }
     
     @ViewBuilder
     func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
+        //print("Drawing \(detections.count) detections with imageFrame: \(imageFrame)")
         ForEach(detections) { detection in
             let rect = convertRect(from: detection.boundingBox, in: imageFrame)
+            //print("Detection: \(detection.label), boundingBox: \(detection.boundingBox), converted: \(rect)")
             
             Rectangle()
                 .stroke(color, lineWidth: 2)
@@ -63,42 +49,53 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         }
     }
     
-    func checkPermission() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-            case .authorized:
-            cameraPermissionGranted = true
-        case .denied, .restricted:
-            cameraPermissionGranted = false
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                DispatchQueue.main.async {
-                    self.cameraPermissionGranted = granted
-                }
-            }
+    func analyzeImage(_ image: UIImage, completion: @escaping () -> Void) {
+        print("Starting analysis for image with size: \(image.size), actualImageFrame: \(actualImageFrame)")
+        
+        // Reset state
+        DispatchQueue.main.async { [weak self] in
+            self?.boardDetections = []
+            self?.pieceDetections = []
+            self?.boardDetector = nil
+            self?.pieceDetector = nil
         }
-    }
-    
-    func analyzeImage(_ image: UIImage) {
+        
+        // Create new detectors
         boardDetector = BoardDetector(image: image)
         pieceDetector = PieceDetector(image: image)
         
-        boardDetections = boardDetector?.detect() ?? []
-        pieceDetections = pieceDetector?.detect() ?? []
+        // Reset detectors
+        boardDetector?.reset()
+        pieceDetector?.reset()
         
-        guard let board = pieceDetector?.convertDetections(from: boardDetections, pieces: pieceDetections, player: currentPlayer) else{return}
+        // Perform detections
+        let newBoardDetections = boardDetector?.detect() ?? []
+        let newPieceDetections = pieceDetector?.detect() ?? []
+        
+        // Update detections on main queue
+        DispatchQueue.main.async { [weak self] in
+            self?.boardDetections = newBoardDetections
+            self?.pieceDetections = newPieceDetections
+            print("Updated detections: Board: \(newBoardDetections.count), Pieces: \(newPieceDetections.count)")
+            completion()
+        }
+        
+        guard let board = pieceDetector?.getBoard(from: newBoardDetections, pieces: newPieceDetections, player: currentPlayer) else {
+            print("Failed to convert detections to board")
+            return
+        }
         
         let game = Game(for: board, currentPlayer: self.currentPlayer)
         board.debugPrint()
         
-
         let (score, move) = game.bestMove(depth: 3)
         
         if let bestMove = move {
-            print("Найкращий хід: \(bestMove.from) → \(bestMove.to), score: \(score)")
+            print("Best move: \(bestMove.from) → \(bestMove.to), score: \(score)")
         }
         
         if let winner = game.checkWinner() {
-            print("Гра завершена. Переможець: \(winner)")
+            print("Game over. Winner: \(winner)")
         }
     }
     
@@ -133,36 +130,6 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         }
         
         actualImageFrame = CGRect(origin: imageOffset, size: actualImageSize)
-    }
-    
-    private func setupCameraSession() {
-        let videoOutput = AVCaptureVideoDataOutput()
-        
-        guard cameraPermissionGranted else { return }
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else { return }
-        guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return }
-        guard captureSession.canAddInput(videoDeviceInput) else { return }
-        captureSession.addInput(videoDeviceInput)
-        
-        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "sampleBufferDelegateQueue"))
-        captureSession.addOutput(videoOutput)
-        videoOutput.connection(with: .video)?.videoOrientation = .portrait
-    }
-}
-
-extension ImageAnalysisViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard let cgImage = imageFromSampleBuffer(sampleBuffer: sampleBuffer) else { return }
-        
-        DispatchQueue.main.async { [unowned self] in
-            self.frame = cgImage
-        }
-    }
-    
-    private func imageFromSampleBuffer(sampleBuffer: CMSampleBuffer) -> CGImage? {
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
-        let ciImage = CIImage(cvImageBuffer: imageBuffer)
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return nil }
-        return cgImage
+        print("Updated actualImageFrame: \(actualImageFrame) for containerSize: \(containerSize)")
     }
 }
