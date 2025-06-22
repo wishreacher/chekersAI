@@ -6,7 +6,6 @@ struct PhotoSelectionView: View {
     
     var body: some View {
         VStack(spacing: 10) {
-            Spacer()
             if let image = viewModel.selectedImage {
                 ZStack {
                     Image(uiImage: image)
@@ -20,21 +19,22 @@ struct PhotoSelectionView: View {
                         }
                 }
                 .padding(.horizontal)
-            } else {
-                Text("No image selected")
-                    .foregroundColor(.gray)
             }
             
             PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                 Text("Select Photo")
-                    .foregroundColor(.blue)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
                     .padding()
+                    .frame(width: 200, height: 40)
+                    .background(Color.blue)
+                    .clipShape(Capsule())
             }
             .onChange(of: viewModel.selectedPhotoItem) { _, newItem in
                 viewModel.handlePhotoUpdate(newItem: newItem)
             }
             
-            Spacer()
+        
         }
         .padding()
     }
