@@ -1,15 +1,11 @@
-//
-//  CameraView.swift
-//  chekersAI
-//
-//  Created by Володимир on 21.06.2025.
-//
-
 import SwiftUI
 
 struct CameraView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Camera Selection View")
+            .font(.largeTitle)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.green.opacity(0.1))
     }
 }
 

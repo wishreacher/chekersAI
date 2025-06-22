@@ -1,10 +1,3 @@
-//
-//  ImageAnalysisViewModel.swift
-//  chekersAI
-//
-//  Created by Володимир on 12.06.2025.
-//
-
 import Foundation
 import SwiftUI
 import PhotosUI
@@ -19,6 +12,7 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var currentPlayer: Player = .black
     @Published var boardDetections: [Detection] = []
     @Published var pieceDetections: [Detection] = []
+    @Published var analysisCompleted = false
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
@@ -29,30 +23,9 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         super.init()
     }
     
-    @ViewBuilder
-    func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
-        //print("Drawing \(detections.count) detections with imageFrame: \(imageFrame)")
-        ForEach(detections) { detection in
-            let rect = convertRect(from: detection.boundingBox, in: imageFrame)
-            //print("Detection: \(detection.label), boundingBox: \(detection.boundingBox), converted: \(rect)")
-            
-            Rectangle()
-                .stroke(color, lineWidth: 2)
-                .frame(width: rect.width, height: rect.height)
-                .position(x: rect.midX, y: rect.midY)
-            
-            Text("\(detection.label) (\(Int(detection.confidence * 100))%)")
-                .font(.caption)
-                .foregroundColor(.white)
-                .background(Color.black.opacity(0.7))
-                .position(x: rect.midX, y: rect.minY - 10)
-        }
-    }
-    
     func analyzeImage(_ image: UIImage, completion: @escaping () -> Void) {
         print("Starting analysis for image with size: \(image.size), actualImageFrame: \(actualImageFrame)")
         
-        // Reset state
         DispatchQueue.main.async { [weak self] in
             self?.boardDetections = []
             self?.pieceDetections = []
@@ -60,19 +33,15 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
             self?.pieceDetector = nil
         }
         
-        // Create new detectors
         boardDetector = BoardDetector(image: image)
         pieceDetector = PieceDetector(image: image)
         
-        // Reset detectors
         boardDetector?.reset()
         pieceDetector?.reset()
         
-        // Perform detections
         let newBoardDetections = boardDetector?.detect() ?? []
         let newPieceDetections = pieceDetector?.detect() ?? []
         
-        // Update detections on main queue
         DispatchQueue.main.async { [weak self] in
             self?.boardDetections = newBoardDetections
             self?.pieceDetections = newPieceDetections
@@ -131,5 +100,87 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         
         actualImageFrame = CGRect(origin: imageOffset, size: actualImageSize)
         print("Updated actualImageFrame: \(actualImageFrame) for containerSize: \(containerSize)")
+    }
+    
+    func handlePhotoUpdate(newItem: PhotosPickerItem?) {
+        DispatchQueue.main.async { [unowned self] in
+            selectedImage = nil
+            boardDetections = []
+            pieceDetections = []
+            actualImageFrame = .zero
+            self.analysisCompleted = false
+            print("Photo selection cleared or new selection started")
+        }
+        
+        guard let newItem = newItem else { return }
+        
+        Task {
+            do {
+                if let data = try await newItem.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        print("Loaded new photo with size: \(uiImage.size)")
+                        self.selectedImage = uiImage
+                    }
+                }
+            } catch {
+                print("Failed to load photo: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    //MARK: - Views
+    
+    @ViewBuilder
+    func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
+        ForEach(detections) { detection in
+            let rect = convertRect(from: detection.boundingBox, in: imageFrame)
+            
+            Rectangle()
+                .stroke(color, lineWidth: 2)
+                .frame(width: rect.width, height: rect.height)
+                .position(x: rect.midX, y: rect.midY)
+            
+            Text("\(detection.label) (\(Int(detection.confidence * 100))%)")
+                .font(.caption)
+                .foregroundColor(.white)
+                .background(Color.black.opacity(0.7))
+                .position(x: rect.midX, y: rect.minY - 10)
+        }
+    }
+    
+    @ViewBuilder
+    func drawDetections() -> some View {
+        if analysisCompleted {
+            drawDetections(detections: boardDetections, imageFrame: actualImageFrame, color: .blue)
+            drawDetections(detections: pieceDetections, imageFrame: actualImageFrame, color: .red)
+        }
+    }
+    
+    @ViewBuilder
+    func makeUpdater(image: UIImage) -> some View {
+        GeometryReader { geo in
+            Color.clear
+                .onAppear {
+                    print("Photo view appeared with container size: \(geo.size)")
+                    self.updateImageFrames(containerSize: geo.size, image: image)
+                    DispatchQueue.main.async {
+                        print("Triggering analysis from onAppear for image: \(image.size)")
+                        self.analyzeImage(image) {
+                            self.analysisCompleted = true
+                        }
+                    }
+                }
+                .onChange(of: geo.size) { _, newSize in
+                    print("Container size changed to: \(newSize)")
+                    self.updateImageFrames(containerSize: newSize, image: image)
+                    DispatchQueue.main.async {
+                        print("Triggering analysis from container size change")
+                        self.analyzeImage(image) {
+                            self.analysisCompleted = true
+                        }
+                    }
+                }
+        }
     }
 }

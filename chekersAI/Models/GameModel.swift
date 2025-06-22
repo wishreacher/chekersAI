@@ -1,3 +1,26 @@
+import Foundation
+
+struct Detection: Identifiable {
+    let id = UUID()
+    let label: String
+    let confidence: Float
+    let boundingBox: CGRect
+}
+
+struct Move {
+    let from: (Int, Int)
+    let to: (Int, Int)
+    let captured: [(Int, Int)]
+}
+
+enum Player: String{
+    case white
+    case black
+}
+
+func opponent(of player: Player) -> Player {
+    return player == .white ? .black : .white
+}
 
 enum Piece: Int {
     case empty = 0
@@ -5,9 +28,7 @@ enum Piece: Int {
     case black = -1
     case blackKing = -2
     case whiteKing = 2
-}
-
-extension Piece {
+    
     func belongs(to player: Player) -> Bool {
         switch (self, player) {
         case (.white, .white), (.whiteKing, .white),

@@ -1,10 +1,3 @@
-//
-//  ChekerBoardModel.swift
-//  chekersAI
-//
-//  Created by Володимир on 12.06.2025.
-//
-
 import Foundation
 
 struct Board {
@@ -132,5 +125,3 @@ struct Board {
         return Board(board: Array(repeating: Array(repeating: .empty, count: 8), count: 8))
     }
 }
-
-
