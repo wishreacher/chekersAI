@@ -2,7 +2,7 @@ import SwiftUI
 import _PhotosUI_SwiftUI
 
 struct PhotoSelectionView: View {
-    @StateObject var viewModel = ImageAnalysisViewModel()
+    @ObservedObject var viewModel: ImageAnalysisViewModel
     
     var body: some View {
         VStack(spacing: 10) {
@@ -41,5 +41,5 @@ struct PhotoSelectionView: View {
 }
 
 #Preview {
-    PhotoSelectionView()
+    PhotoSelectionView(viewModel: ImageAnalysisViewModel())
 }
