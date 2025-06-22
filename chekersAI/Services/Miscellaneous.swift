@@ -17,23 +17,11 @@ func convertRect(from normalizedRect: CGRect, in imageFrame: CGRect) -> CGRect {
     return CGRect(x: x, y: y, width: width, height: height).standardized
 }
 
-func convertVisionRectToUIRect(visionRect: CGRect, imageFrame: CGRect) -> CGRect {
-    let imageWidth = imageFrame.width
-    let imageHeight = imageFrame.height
-    
-    let x = visionRect.origin.x * imageWidth + imageFrame.origin.x
-    let y = (1 - visionRect.origin.y - visionRect.height) * imageHeight + imageFrame.origin.y
-    let width = visionRect.size.width * imageWidth
-    let height = visionRect.size.height * imageHeight
-    
-    return CGRect(x: x, y: y, width: width, height: height)
-}
-
 func boardBoundingBox(from rectangles: [VNRectangleObservation], in imageFrame: CGRect) -> CGRect? {
     guard !rectangles.isEmpty else { return nil }
 
     let convertedRects = rectangles.map {
-        convertVisionRectToUIRect(visionRect: $0.boundingBox, imageFrame: imageFrame)
+        convertRect(from: $0.boundingBox, in: imageFrame)
     }
 
     let minX = convertedRects.map { $0.minX }.min() ?? 0
