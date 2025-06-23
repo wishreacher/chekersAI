@@ -4,7 +4,6 @@ struct ContentView: View {
     @ObservedObject private var contentViewModel = ContentViewModel()
     @StateObject private var imageViewModel = ImageAnalysisViewModel()
     
-    
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
