@@ -9,34 +9,36 @@ struct NavigationBarView: View {
         VStack (alignment: .leading, spacing: 20) {
             HStack {
                 ZStack {
-                    if analysisViewModel.currentPlayer == .black {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.black)
-                    } else {
-                        Image(systemName: "crown")
-                            .font(.system(size: 20))
-                            .foregroundColor(.black)
-                    }
-                    
-                    Circle()
-                        .stroke(Color.blue, lineWidth: 1)
-                        .frame(width: 50, height: 50)
-                        .opacity(0.1)
-                    
+                    Button(action: {
+                        if analysisViewModel.currentPlayer == .black {
+                            analysisViewModel.currentPlayer = .white
+                        } else {
+                            analysisViewModel.currentPlayer = .black
+                        }
+                        
+                        if analysisViewModel.selectedImage != nil {
+                            analysisViewModel.analyzeImage(analysisViewModel.selectedImage!) {
+                                
+                            }
+                        }
+                    }, label: {
+                        if analysisViewModel.currentPlayer == .black {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.black)
+                        } else {
+                            Image(systemName: "crown")
+                                .font(.system(size: 20))
+                                .foregroundColor(.black)
+                        }
+                    })
+                    .frame(width: 50, height: 50)
                 }
                 .background(
                     Capsule()
                         .fill(Material.ultraThin)
                         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 )
-                .onTapGesture {
-                    if analysisViewModel.currentPlayer == .black {
-                        analysisViewModel.currentPlayer = .white
-                    } else {
-                        analysisViewModel.currentPlayer = .black
-                    }
-                }
                 
                 PhotosPicker(selection: $analysisViewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                     Text("Select Photo")
