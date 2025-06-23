@@ -13,6 +13,7 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var boardDetections: [Detection] = []
     @Published var pieceDetections: [Detection] = []
     @Published var analysisCompleted = false
+    @Published var bestMove: Move?
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
@@ -59,8 +60,9 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         
         let (score, move) = game.bestMove(depth: 3)
         
-        if let bestMove = move {
-            print("Best move: \(bestMove.from) → \(bestMove.to), score: \(score)")
+        if move != nil {
+            bestMove = move
+            print("Best move: \(move!.from) → \(move!.to), score: \(score)")
         }
         
         if let winner = game.checkWinner() {
@@ -130,7 +132,6 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
     }
     
     //MARK: - Views
-    
     @ViewBuilder
     func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
         ForEach(detections) { detection in

@@ -5,7 +5,7 @@ struct NavigationBarView: View {
     @ObservedObject var analysisViewModel: ImageAnalysisViewModel
     
     var body: some View {
-        VStack (alignment: .leading, spacing: 25) {
+        VStack (alignment: .leading, spacing: 20) {
             if(analysisViewModel.selectedImage != nil) {
                 ZStack {
                     if analysisViewModel.currentPlayer == .black {
