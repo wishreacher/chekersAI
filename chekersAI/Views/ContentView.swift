@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject private var contentViewModel = ContentViewModel()
     @StateObject private var imageViewModel = ImageAnalysisViewModel()
-    @ObservedObject var analyzer = ImageAnalysisViewModel()
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -13,10 +12,10 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .ignoresSafeArea(.all, edges: .bottom)
                 } else {
-                    CameraView(analyzer: analyzer)
+                    CameraView(analyzer: imageViewModel)
                 }
             }
-            NavigationBarView(viewModel: contentViewModel, analysisViewModel: imageViewModel, analyzer: analyzer)
+            NavigationBarView(viewModel: contentViewModel, analysisViewModel: imageViewModel, analyzer: imageViewModel)
         }
         .background(Color(CGColor(red: 211/255, green: 211/255, blue: 211/255, alpha: 1)))
     }

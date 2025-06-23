@@ -25,11 +25,11 @@ struct CameraView: View {
             
             Text("Наведіть камеру на дошку")
                 .font(.headline)
-            
+            Spacer()
             
             analyzer.arViewRep
                 .frame(width: 300, height: 300)
-                .padding(.bottom, 70)
+                .padding(.bottom, 150)
             Spacer()
         }
         .padding()
@@ -37,6 +37,6 @@ struct CameraView: View {
     }
 }
 
-#Preview {
-    CameraView(analyzer: ImageAnalysisViewModel())
-}
+//#Preview {
+//    CameraView(analyzer: ImageAnalysisViewModel())
+//}
