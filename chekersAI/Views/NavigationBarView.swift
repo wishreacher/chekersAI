@@ -4,6 +4,9 @@ import _PhotosUI_SwiftUI
 struct NavigationBarView: View {
     @ObservedObject var viewModel: ContentViewModel
     @ObservedObject var analysisViewModel: ImageAnalysisViewModel
+    @ObservedObject var analyzer: ImageAnalysisViewModel
+    
+    @State var canAnalyze: Bool = false
     
     var body: some View {
         VStack (alignment: .leading, spacing: 20) {
@@ -52,6 +55,27 @@ struct NavigationBarView: View {
                     .onChange(of: analysisViewModel.selectedPhotoItem) { _, newItem in
                         analysisViewModel.handlePhotoUpdate(newItem: newItem)
                     }
+                } else {
+                    if canAnalyze {
+                        Button("Draw Arrow") {
+                            analyzer.arViewRep.analyze(using: analyzer)
+                        }
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background(Color.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                    } else {
+                        Button("Searching for plane") {
+                            
+                        }
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background(Color.gray)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .disabled(true)
+                    }
                 }
             }
             
@@ -82,9 +106,15 @@ struct NavigationBarView: View {
             .padding(.bottom, 0)
         }
         .padding(.horizontal, 40)
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name(rawValue: "planeDetected"))) { notification in
+            canAnalyze = true
+        }
+        .onDisappear() {
+            canAnalyze = false
+        }
     }
 }
 
 #Preview {
-    NavigationBarView(viewModel: ContentViewModel(), analysisViewModel: ImageAnalysisViewModel())
+    NavigationBarView(viewModel: ContentViewModel(), analysisViewModel: ImageAnalysisViewModel(), analyzer: ImageAnalysisViewModel())
 }

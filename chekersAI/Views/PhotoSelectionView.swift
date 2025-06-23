@@ -14,7 +14,6 @@ struct PhotoSelectionView: View {
             }
             .padding(.vertical, 15)
             
-            
             Text(viewModel.moveToString())
                 .monospaced()
                 .frame(height: 20)
@@ -30,7 +29,7 @@ struct PhotoSelectionView: View {
                     .frame(maxHeight: 400)
                     .overlay {
                         ZStack {
-                            //viewModel.drawDetections()
+                            viewModel.drawDetections()
                             
                             if let bestMove = viewModel.bestMove {
                                 ArrowOverlay(move: bestMove, frame: viewModel.actualImageFrame, color: .yellow)

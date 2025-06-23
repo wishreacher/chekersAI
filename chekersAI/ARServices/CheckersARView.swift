@@ -98,6 +98,7 @@ final class CheckersARView: ARView, ARSessionDelegate{
         for anchor in anchors {
             if let planeAnchor = anchor as? ARPlaneAnchor {
                 print("✅ Знайдено площину з розміром: \(planeAnchor.extent)")
+                NotificationCenter.default.post(name: NSNotification.Name("planeDetected"), object: nil)
             }
         }
     }

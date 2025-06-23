@@ -15,6 +15,9 @@ final class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var analysisCompleted = false
     @Published var bestMove: Move?
     
+    
+    @Published var arViewRep = CheckersARViewRepresentable()
+    
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
     
