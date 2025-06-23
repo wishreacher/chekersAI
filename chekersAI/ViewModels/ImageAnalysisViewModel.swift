@@ -24,6 +24,11 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         super.init()
     }
     
+    convenience init(image: UIImage) {
+        self.init(actualImageFrame: .zero, containerFrame: .zero)
+        selectedImage = image
+    }
+    
     func analyzeImage(_ image: UIImage, completion: @escaping () -> Void) {
         print("Starting analysis for image with size: \(image.size), actualImageFrame: \(actualImageFrame)")
         
@@ -128,6 +133,21 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
             } catch {
                 print("Failed to load photo: \(error.localizedDescription)")
             }
+        }
+    }
+    
+    func moveToString() -> String {
+        if let move = self.bestMove {
+            let fromColumnLetter = String(UnicodeScalar(65 + move.from.1)!)
+            let fromRowNumber = 8 - move.from.0
+            
+            let toColumnLetter = String(UnicodeScalar(65 + move.to.1)!)
+            let toRowNumber = 8 - move.to.0
+            
+            
+            return "\(fromColumnLetter)\(fromRowNumber) -> \(toColumnLetter)\(toRowNumber)"
+        } else {
+            return "❓"
         }
     }
     
