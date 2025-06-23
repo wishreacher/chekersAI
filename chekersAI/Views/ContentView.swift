@@ -18,6 +18,7 @@ struct ContentView: View {
             }
             NavigationBarView(viewModel: contentViewModel, analysisViewModel: imageViewModel)
         }
+        .background(Color(CGColor(red: 211/255, green: 211/255, blue: 211/255, alpha: 1)))
     }
 }
 
