@@ -5,41 +5,55 @@ struct PhotoSelectionView: View {
     @ObservedObject var viewModel: ImageAnalysisViewModel
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Best Move: 🤩")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            .padding(.vertical, 15)
+            
+            
+            Text(viewModel.moveToString())
+                .monospaced()
+                .frame(height: 20)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 15))
+            
             if let image = viewModel.selectedImage {
-                ZStack {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .overlay {
-                            viewModel.drawDetections()
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 400)
+                    .overlay {
+                        ZStack {
+                            //viewModel.drawDetections()
+                            
+                            if let bestMove = viewModel.bestMove {
+                                ArrowOverlay(move: bestMove, frame: viewModel.actualImageFrame, color: .yellow)
+                            }
                         }
-                        .background {
-                            viewModel.makeUpdater(image: image)
-                        }
-                }
-                .padding(.horizontal)
+                    }
+                    .background {
+                        viewModel.makeUpdater(image: image)
+                    }
+            } else {
+                Group {
+                    Text("")
+                } .frame(maxHeight: 400)
             }
             
-            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
-                Text("Select Photo")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(width: 200, height: 40)
-                    .background(Color.blue)
-                    .clipShape(Capsule())
-            }
-            .onChange(of: viewModel.selectedPhotoItem) { _, newItem in
-                viewModel.handlePhotoUpdate(newItem: newItem)
-            }
-            
-        
+            Spacer()
         }
-        .padding()
+        .padding(.horizontal, 25)
     }
 }
 
 #Preview {
-    PhotoSelectionView(viewModel: ImageAnalysisViewModel())
+    let image = UIImage(named: "test")!
+    let vm = ImageAnalysisViewModel(image: image)
+    PhotoSelectionView(viewModel: vm)
 }

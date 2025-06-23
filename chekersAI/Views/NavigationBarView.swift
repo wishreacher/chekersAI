@@ -1,12 +1,13 @@
 import SwiftUI
+import _PhotosUI_SwiftUI
 
 struct NavigationBarView: View {
     @ObservedObject var viewModel: ContentViewModel
     @ObservedObject var analysisViewModel: ImageAnalysisViewModel
     
     var body: some View {
-        VStack (alignment: .leading, spacing: 25) {
-            if(analysisViewModel.selectedImage != nil) {
+        VStack (alignment: .leading, spacing: 20) {
+            HStack {
                 ZStack {
                     if analysisViewModel.currentPlayer == .black {
                         Image(systemName: "crown.fill")
@@ -36,6 +37,18 @@ struct NavigationBarView: View {
                         analysisViewModel.currentPlayer = .black
                     }
                 }
+                
+                PhotosPicker(selection: $analysisViewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
+                    Text("Select Photo")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background(Color.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                }
+                .onChange(of: analysisViewModel.selectedPhotoItem) { _, newItem in
+                    analysisViewModel.handlePhotoUpdate(newItem: newItem)
+                }
             }
             
             HStack(spacing: 0) {
@@ -60,7 +73,6 @@ struct NavigationBarView: View {
                 Capsule()
                     .fill(Material.ultraThin)
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    
             )
 
             .padding(.bottom, 0)

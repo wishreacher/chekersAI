@@ -4,7 +4,7 @@ import PhotosUI
 import CoreML
 import Vision
 
-class ImageAnalysisViewModel: NSObject, ObservableObject {
+final class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var actualImageFrame: CGRect
@@ -13,6 +13,7 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
     @Published var boardDetections: [Detection] = []
     @Published var pieceDetections: [Detection] = []
     @Published var analysisCompleted = false
+    @Published var bestMove: Move?
     
     private var boardDetector: BoardDetector?
     private var pieceDetector: PieceDetector?
@@ -21,6 +22,11 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         self.actualImageFrame = actualImageFrame
         self.containerFrame = containerFrame
         super.init()
+    }
+    
+    convenience init(image: UIImage) {
+        self.init(actualImageFrame: .zero, containerFrame: .zero)
+        selectedImage = image
     }
     
     func analyzeImage(_ image: UIImage, completion: @escaping () -> Void) {
@@ -59,8 +65,9 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         
         let (score, move) = game.bestMove(depth: 3)
         
-        if let bestMove = move {
-            print("Best move: \(bestMove.from) → \(bestMove.to), score: \(score)")
+        if move != nil {
+            bestMove = move
+            print("Best move: \(move!.from) → \(move!.to), score: \(score)")
         }
         
         if let winner = game.checkWinner() {
@@ -129,8 +136,22 @@ class ImageAnalysisViewModel: NSObject, ObservableObject {
         }
     }
     
-    //MARK: - Views
+    func moveToString() -> String {
+        if let move = self.bestMove {
+            let fromColumnLetter = String(UnicodeScalar(65 + move.from.1)!)
+            let fromRowNumber = 8 - move.from.0
+            
+            let toColumnLetter = String(UnicodeScalar(65 + move.to.1)!)
+            let toRowNumber = 8 - move.to.0
+            
+            
+            return "\(fromColumnLetter)\(fromRowNumber) -> \(toColumnLetter)\(toRowNumber)"
+        } else {
+            return "❓"
+        }
+    }
     
+    //MARK: - Views
     @ViewBuilder
     func drawDetections(detections: [Detection], imageFrame: CGRect, color: Color = .blue) -> some View {
         ForEach(detections) { detection in
