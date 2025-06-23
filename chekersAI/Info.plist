@@ -11,7 +11,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to the camera for scanning purposes.</string>
+	<string>This app requires access to the camera for Augmentent Reality</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIImageName</key>
