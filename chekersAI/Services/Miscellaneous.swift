@@ -31,31 +31,6 @@ func convertMoveTo3DPoints(_ move: Move, in frame: CGRect, using arView: Checker
 
     return (from3D, to3D)
 }
-//func convertMoveTo3DPoints(_ move: Move, in frame: CGRect, using arView: CheckersARView) -> (SIMD3<Float>?, SIMD3<Float>?) {
-//    let from2D = positionToImageOffset(row: move.from.0, col: move.from.1, in: frame)
-//    let to2D = positionToImageOffset(row: move.to.0, col: move.to.1, in: frame)
-//
-//    // Відносні координати від центру екрану (дошки)
-//    let fromRelative = CGPoint(x: from2D.x - frame.midX, y: from2D.y - frame.midY)
-//    let toRelative = CGPoint(x: to2D.x - frame.midX, y: to2D.y - frame.midY)
-//
-//    // Переводимо пікселі в метри (підібрати емпірично)
-//    let scale: Float = 0.001
-//    // Фіксована висота над камерою (наприклад, 5 см)
-//    let yPlane: Float = 0.05
-//
-//    // Конвертація 2D в 3D в системі координат камери
-//    let from3D = SIMD3<Float>(
-//        Float(fromRelative.x) * scale,
-//        yPlane,
-//        -Float(fromRelative.y) * scale
-//    )
-//    let to3D = SIMD3<Float>(
-//        Float(toRelative.x) * scale,
-//        yPlane,
-//        -Float(toRelative.y) * scale
-//    )
-//    return (from3D, to3D)
-//}
+
 
 

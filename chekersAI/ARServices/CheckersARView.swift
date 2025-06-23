@@ -33,7 +33,6 @@ final class CheckersARView: ARView, ARSessionDelegate{
     func analyzeCurrentFrame(with model: ImageAnalysisViewModel, containerSize: CGSize) {
         self.snapshot(saveToHDR: false) { image in
             guard let image = image else {
-                print("❌ Не вдалося зробити snapshot")
                 return
             }
             
@@ -41,9 +40,7 @@ final class CheckersARView: ARView, ARSessionDelegate{
             
             model.analyzeImage(image) { [weak self] in
                 guard let self = self else { return }
-                print("📸 Actual image frame: \(model.actualImageFrame)")
-                print("♟️ Best move: \(model.bestMove)")
-                
+
                 if let move = model.bestMove {
                     let (from3DOpt, to3DOpt) = convertMoveTo3DPoints(move, in: model.actualImageFrame, using: self)
                     if let from3D = from3DOpt, let to3D = to3DOpt {

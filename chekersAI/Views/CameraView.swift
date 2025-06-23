@@ -37,6 +37,6 @@ struct CameraView: View {
     }
 }
 
-//#Preview {
-//    CameraView(analyzer: ImageAnalysisViewModel())
-//}
+#Preview {
+    CameraView(analyzer: ImageAnalysisViewModel())
+}
