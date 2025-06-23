@@ -40,16 +40,18 @@ struct NavigationBarView: View {
                         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 )
                 
-                PhotosPicker(selection: $analysisViewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
-                    Text("Select Photo")
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, minHeight: 40)
-                        .background(Color.blue)
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                }
-                .onChange(of: analysisViewModel.selectedPhotoItem) { _, newItem in
-                    analysisViewModel.handlePhotoUpdate(newItem: newItem)
+                if (viewModel.selectedTab == .photo) {
+                    PhotosPicker(selection: $analysisViewModel.selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
+                        Text("Select Photo")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, minHeight: 40)
+                            .background(Color.blue)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                    }
+                    .onChange(of: analysisViewModel.selectedPhotoItem) { _, newItem in
+                        analysisViewModel.handlePhotoUpdate(newItem: newItem)
+                    }
                 }
             }
             
