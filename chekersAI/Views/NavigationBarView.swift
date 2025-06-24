@@ -15,9 +15,12 @@ struct NavigationBarView: View {
                     Button(action: {
                         if analysisViewModel.currentPlayer == .black {
                             analysisViewModel.currentPlayer = .white
+                            analyzer.arViewRep.view.scene.anchors.removeAll()
                         } else {
                             analysisViewModel.currentPlayer = .black
+                            analyzer.arViewRep.view.scene.anchors.removeAll()
                         }
+                        
                         
                         if analysisViewModel.selectedImage != nil {
                             analysisViewModel.analyzeImage(analysisViewModel.selectedImage!) {
@@ -58,6 +61,7 @@ struct NavigationBarView: View {
                 } else {
                     if canAnalyze {
                         Button("Draw Arrow") {
+                            analyzer.reset_data()
                             analyzer.arViewRep.analyze(using: analyzer)
                         }
                         .fontWeight(.semibold)
@@ -83,6 +87,9 @@ struct NavigationBarView: View {
                 ForEach(Tab.allCases, id: \.self) { tab in
                     Button(action: {
                         viewModel.selectedTab = tab
+                        analyzer.reset_data()
+                        analyzer.arViewRep.view.scene.anchors.removeAll()
+                        analysisViewModel.reset_data()
                     }) {
                         VStack(spacing: 4) {
                             Image(systemName: tab.systemImage)

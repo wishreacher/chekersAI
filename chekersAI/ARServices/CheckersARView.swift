@@ -11,6 +11,7 @@ import SwiftUI
 
 final class CheckersARView: ARView, ARSessionDelegate{
     var isPlaneDetected = false
+    private let config = ARWorldTrackingConfiguration()
     
     required init(frame frameRect: CGRect) {
         super.init(frame: frameRect)
@@ -22,7 +23,6 @@ final class CheckersARView: ARView, ARSessionDelegate{
     }
     
     private func setupSession() {
-        let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal, .vertical]
         config.environmentTexturing = .automatic
         session.delegate = self
@@ -30,11 +30,15 @@ final class CheckersARView: ARView, ARSessionDelegate{
         
     }
     
+    
+    
     func analyzeCurrentFrame(with model: ImageAnalysisViewModel, containerSize: CGSize) {
+        scene.anchors.removeAll()
         self.snapshot(saveToHDR: false) { image in
             guard let image = image else {
                 return
             }
+            
             
             model.updateImageFrames(containerSize: containerSize, image: image)
             
@@ -69,7 +73,7 @@ final class CheckersARView: ARView, ARSessionDelegate{
         let length = distance(from, to)
 
         let shaftLength: Float = length * 0.8
-        let shaftMesh = MeshResource.generateBox(size: [0.01, 0.01, shaftLength])
+        let shaftMesh = MeshResource.generateBox(size: [0.005, 0.005, shaftLength])
         let shaftMaterial = SimpleMaterial(color: .yellow, isMetallic: false)
         let shaft = ModelEntity(mesh: shaftMesh, materials: [shaftMaterial])
         shaft.position = from + direction * (shaftLength / 2)
@@ -77,7 +81,7 @@ final class CheckersARView: ARView, ARSessionDelegate{
         
 
         let headLength: Float = length * 0.2
-        let coneMesh = MeshResource.generateCone(height: headLength, radius: 0.02)
+        let coneMesh = MeshResource.generateCone(height: headLength, radius: 0.01)
         let coneMaterial = SimpleMaterial(color: .yellow, isMetallic: false)
         let head = ModelEntity(mesh: coneMesh, materials: [coneMaterial])
         head.position = from + direction * (shaftLength + headLength / 2)

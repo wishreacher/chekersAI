@@ -138,7 +138,17 @@ final class ImageAnalysisViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
+    func reset_data(){
+        DispatchQueue.main.async { [unowned self] in
+            selectedImage = nil
+            bestMove = nil
+            boardDetections = []
+            pieceDetections = []
+            actualImageFrame = .zero
+            self.analysisCompleted = false
+            print("Photo selection cleared or new selection started")
+        }
+    }
     func moveToString() -> String {
         if let move = self.bestMove {
             let fromColumnLetter = String(UnicodeScalar(65 + move.from.1)!)
